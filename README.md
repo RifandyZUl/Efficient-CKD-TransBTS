@@ -1,200 +1,144 @@
 # Efficient-CKD-TransBTS
-Efficient CKD-TransBTS for 3D glioma segmentation through architecture adaptation and Taguchi-based hyperparameter optimization.
 
-Efficient CKD-TransBTS for 3D Glioma Segmentation
+> **Efficient CKD-TransBTS for 3D Glioma Segmentation through Architecture Adaptation and Taguchi-Based Hyperparameter Optimization**
 
-An efficient CKD-TransBTS framework for 3D glioma segmentation through architecture adaptation and Taguchi-based hyperparameter optimization.
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![MONAI](https://img.shields.io/badge/MONAI-Medical_AI-green.svg)](https://monai.io/)
+[![Colab Ready](https://img.shields.io/badge/Colab-Ready-orange.svg)](https://colab.research.google.com/)
 
-Overview
+---
 
-This project presents an efficient adaptation of CKD-TransBTS for 3D glioma segmentation using multi-modal MRI data from the BraTS-GLI 2024 dataset.
+## 📌 Overview
 
-The original CKD-TransBTS architecture provides strong segmentation performance but has relatively high computational complexity. This project focuses on reducing the model complexity while maintaining competitive segmentation performance.
+This repository presents an efficient adaptation of **CKD-TransBTS** for 3D multi-modal glioma brain tumor segmentation using the **BraTS-GLI 2024** dataset. 
 
-The approach consists of two main stages:
+While the original CKD-TransBTS achieves high accuracy, its computational and memory footprints remain prohibitively heavy for resource-constrained environments. This project optimizes the trade-off between segmentation performance and model efficiency via:
+1. **Architectural adaptation** to drastically reduce model parameters and compute demands.
+2. **Taguchi experimental design ($L_9$)** for systematic hyperparameter tuning.
 
-Architecture adaptation to reduce the model's computational and memory requirements.
-Taguchi-based hyperparameter optimization to determine an efficient training configuration.
+> **Note:** The included Google Colab notebook provides the full training and evaluation pipeline for the final, optimal configuration (**L5**), rather than the complete initial $L_1$–$L_9$ exploratory trials.
 
-The final model is implemented and trained using PyTorch and MONAI, with the complete implementation provided in a Google Colab-compatible notebook.
+---
 
-Note: The Taguchi method was used to select the final hyperparameter configuration. The notebook included in this repository contains the implementation and final training of the selected L5 configuration, rather than the complete L1–L9 Taguchi experiment.
+## 🎯 Key Highlights
 
-Key Contributions
-Adapted the CKD-TransBTS architecture to significantly reduce model complexity.
-Reduced the number of parameters from approximately 82.28M to 1.04M.
-Applied Taguchi-based hyperparameter optimization using an L9 orthogonal array.
-Identified L5 as the selected configuration:
-Learning rate: 0.0001
-Optimizer: AdamW
-Patch size: 64 × 64 × 64
-Evaluated segmentation performance using Dice Score, Sensitivity, and HD95.
-Evaluated inference efficiency against the reference implementation.
-Model Architecture
+* **~79× Parameter Reduction:** Model size compressed from **82.28M** down to **1.04M** parameters.
+* **~1.67× Faster Inference:** Average inference time decreased from **144.13 s** to **86.18 s**.
+* **Competitive Metrics:** Maintained a competitive **0.6989 Mean Dice** (vs. 0.7151 reference), while improving overall Sensitivity (**0.8205**) and HD95 (**5.77 mm**).
 
-The adapted model retains the core multi-modal feature learning concept of CKD-TransBTS while simplifying its architecture to reduce computational requirements.
+---
 
-Architecture Adaptation
+## 🏗️ Architecture Adaptation
 
-The main adaptations include:
+The adapted model retains the core multi-modal feature learning principle of CKD-TransBTS while streamlining resource-intensive components:
 
-Base channel reduced to 16.
-Constant base channel configuration across stages.
-Convolutional bottleneck replacing the original transformer-based bottleneck.
-Three sequential Modality-Correlated Cross-Attention (MCCA) blocks.
-MCCA base channel set to 32.
-Attention heads fixed at 2.
-Multi-modal MRI inputs are grouped as:
-T1c + T1n
-T2f + T2w
-Feature calibration is performed using the Transformer & CNN Feature Calibration (TCFC) component.
+* **Base Channels:** Reduced to a constant **16 channels** across all stages.
+* **Bottleneck:** Replaced heavy transformer layers with an efficient convolutional bottleneck.
+* **Cross-Attention:** Integrated **3 sequential Modality-Correlated Cross-Attention (MCCA)** blocks (base channel: 32, attention heads: 2).
+* **Modality Pairing:** Multi-modal MRI inputs are grouped into two complementary streams:
+  * Stream A: `T1c` + `T1n`
+  * Stream B: `T2f` + `T2w`
+* **Calibration:** Feature calibration implemented via the **Transformer & CNN Feature Calibration (TCFC)** component.
 
-These adaptations reduce the computational requirements while preserving the main feature extraction and multi-modal fusion mechanisms.
+---
 
-Dataset
+## 📊 Taguchi Hyperparameter Optimization
 
-The model was evaluated using the BraTS-GLI 2024 dataset.
+A Taguchi $L_9(3^3)$ orthogonal array was employed to systematically screen three critical training factors across three levels:
 
-The dataset contains four MRI modalities:
+| Factor | Level 1 | Level 2 | Level 3 |
+| :--- | :---: | :---: | :---: |
+| **Learning Rate** | 0.001 | 0.0001 | 0.00001 |
+| **Optimizer** | Adam | AdamW | SGD |
+| **Patch Size** | $128 \times 128 \times 128$ | $96 \times 96 \times 96$ | $64 \times 64 \times 64$ |
 
-T1n
-T1c
-T2w
-T2f
+### Selected Configuration (L5)
+The **L5** configuration yielded the highest validation performance and was selected for full model convergence:
 
-The segmentation labels represent four tumor subregions:
+| Configuration | Learning Rate | Optimizer | Patch Size | Mean Dice |
+| :---: | :---: | :---: | :---: | :---: |
+| **L5** | **0.0001** | **AdamW** | **$64 \times 64 \times 64$** | **0.6553** |
 
-NETC — Non-enhancing tumor core
-SNFH — Surrounding non-enhancing FLAIR hyperintensity
-ET — Enhancing tumor
-RC — Resection cavity
+---
 
-Compound tumor regions were also evaluated:
+## 🧪 Experimental Setup
 
-TC = ET + NETC
-WT = ET + NETC + SNFH
+### Dataset & Subregions
+Evaluated on **BraTS-GLI 2024** using a fixed random seed of `42`:
+* **Training:** 1,081 cases
+* **Validation:** 270 cases
+* **Testing:** 270 cases
 
-The dataset is not included in this repository due to its size and licensing/distribution conditions. Please obtain the dataset from the official BraTS/CBICA distribution source before running the notebook.
+* **Modalities:** T1n, T1c, T2w, and T2f.
+* **Target Subregions:**
+  * Primary: Non-enhancing tumor core (**NETC**), Surrounding non-enhancing FLAIR hyperintensity (**SNFH**), Enhancing tumor (**ET**), and Resection cavity (**RC**).
+  * Compound: Tumor Core (**TC** = ET + NETC), Whole Tumor (**WT** = ET + NETC + SNFH).
 
-Preprocessing
+*(Due to BraTS licensing agreements, dataset files are not distributed within this repository. Please obtain access via the CBICA distribution portal).*
 
-The preprocessing pipeline includes:
+### Preprocessing & Augmentation
+* **Pipeline:** RAS orientation $\rightarrow$ Resampling to $1 \times 1 \times 1\text{ mm}$ $\rightarrow$ $1^{\text{st}}$–$99^{\text{th}}$ percentile intensity clipping $\rightarrow$ Foreground cropping $\rightarrow$ Patch extraction ($64 \times 64 \times 64$).
+* **Augmentations:** Random flips, $90^\circ$ rotations, affine transforms, 3D elastic deformation, zoom, and Gaussian noise.
 
-MRI loading
-Channel-first conversion
-RAS orientation
-Resampling to 1 × 1 × 1 mm
-Label validation
-Intensity normalization using the 1st–99th percentile range
-Foreground cropping
-Spatial augmentation
-Intensity augmentation
-Padding
-Patch-based training with 64 × 64 × 64 patches
+### Training Configuration
+* **Optimizer:** AdamW (LR: `1e-4`, Weight Decay: `1e-5`)
+* **Scheduler:** CosineAnnealingLR (minimum LR: `1e-5`)
+* **Loss Function:** Combined Cross-Entropy + Generalized Dice Loss
+* **Efficiency Features:** Automatic Mixed Precision (AMP), Gradient Accumulation, and Gradient Clipping over 100 epochs.
 
-Data augmentation includes random:
+---
 
-Flipping
-90-degree rotation
-Affine transformation
-3D elastic deformation
-Zoom
-Gaussian noise
-Taguchi Hyperparameter Optimization
+## 📈 Results & Evaluation
 
-Taguchi's method was used to evaluate three training factors at three levels using an L9 orthogonal array.
+### 1. Overall Performance vs. Reference
 
-Factor	Level 1	Level 2	Level 3
-Learning Rate	0.001	0.0001	0.00001
-Optimizer	Adam	AdamW	SGD
-Patch Size	128³	96³	64³
+| Metric | Optimized CKD-TransBTS | Reference Model | Change |
+| :--- | :---: | :---: | :---: |
+| **Parameters** | **1.04M** | 82.28M | **-98.7% (~79× smaller)** |
+| **Mean Dice** | 0.6989 | 0.7151 | -0.0162 |
+| **Sensitivity** | **0.8205** | 0.8058 | **+0.0147** |
+| **HD95** | **5.77 mm** | 6.32 mm | **-0.55 mm (better)** |
+| **Avg. Inference Time** | **86.18 s** | 144.13 s | **~1.67× faster** |
 
-The L5 configuration produced the highest Mean Dice among the tested configurations:
+### 2. Dice Score by Subregion
 
-Configuration	Learning Rate	Optimizer	Patch Size	Mean Dice
-L5	0.0001	AdamW	64³	0.6553
+| Subregion | Dice Score |
+| :--- | :---: |
+| Whole Tumor (WT) | **0.8598** |
+| Surrounding FLAIR Hyperintensity (SNFH) | **0.8443** |
+| Non-enhancing Tumor Core (NETC) | **0.7117** |
+| Resection Cavity (RC) | 0.6080 |
+| Tumor Core (TC) | 0.5849 |
+| Enhancing Tumor (ET) | 0.5846 |
 
-The selected L5 configuration was subsequently used for final model training.
+### 3. Inference Latency Benchmark
 
-Experimental Setup
+| Test Case | Optimized Model | Reference Model |
+| :--- | :---: | :---: |
+| Case 1 (Anton) | 86.09 s | 167.31 s |
+| Case 2 (Rudi) | 100.80 s | 107.10 s |
+| Case 3 (Siti) | 71.64 s | 157.97 s |
+| **Average** | **86.18 s** | **144.13 s** |
 
-The final model was trained using:
+---
 
-Optimizer: AdamW
-Learning rate: 1e-4
-Weight decay: 1e-5
-Epochs: 100
-Learning rate scheduler: CosineAnnealingLR
-Minimum learning rate: 1e-5
-Automatic Mixed Precision (AMP)
-Gradient accumulation
-Gradient clipping
-Combined Cross-Entropy and Generalized Dice Loss
+## ⚠️ Limitations
 
-The final dataset was divided into:
+* **Epoch Constraints:** Training was capped at 100 epochs due to GPU quotas (compared to 261 epochs in the reference literature).
+* **Small Region Sensitivity:** Segmentation accuracy for localized regions (ET and RC) remains lower than broader regions (WT and SNFH) due to generic foreground patch sampling.
+* **Taguchi Scope:** The Taguchi experiment was applied specifically for hyperparameter identification and did not extend to full S/N ratio or ANOVA factor-significance calculations.
 
-Training: 1,081 cases
-Validation: 270 cases
-Testing: 270 cases
+---
 
-The split was performed using a fixed random seed of 42.
+## 📚 Citation
 
-Results
+If you find this codebase or research useful, please cite:
 
-Limitations
-
-Several limitations should be considered:
-
-The final training was limited to 100 epochs, compared with 261 epochs reported for the reference experiment, due to computational limitations.
-The final model was trained and evaluated in a resource-constrained environment.
-Dice performance for ET and RC was lower than for larger tumor regions such as WT and SNFH.
-Patch sampling primarily targeted the general tumor region and did not specifically prioritize smaller ET and RC regions.
-The Taguchi analysis in this study was used primarily for configuration selection and did not include a formal S/N ratio and ANOVA analysis.
-Citation
-
-If you use this implementation or research in your work, please cite the corresponding thesis/research publication.
-
+```bibtex
 @thesis{rifandy2026ckdtransbts,
-  author  = {Zul Tiandra Rifandy},
-  title   = {Optimisasi Hyperparameter Model CKD-TransBTS Menggunakan Metode Taguchi untuk Segmentasi Glioma Otak 3D secara Efisien},
-  school  = {Universitas Esa Unggul},
-  year    = {2026}
+  author = {Zul Tiandra Rifandy},
+  title  = {Optimisasi Hyperparameter Model CKD-TransBTS Menggunakan Metode Taguchi untuk Segmentasi Glioma Otak 3D secara Efisien},
+  school = {Universitas Esa Unggul},
+  year   = {2026}
 }
-License
-
-This project is intended for academic and research purposes.
-
-See the LICENSE file for details.
-
-The adapted model achieved competitive segmentation performance while substantially reducing model complexity.
-
-Metric	Optimized CKD-TransBTS	Reference
-Parameters	1.04M	82.28M
-Mean Dice	0.6989	0.7151
-Sensitivity	0.8205	0.8058
-HD95	5.77 mm	6.32 mm
-Average Inference Time	86.18 s	144.13 s
-Key Findings
-Approximately 79× fewer parameters than the reference model.
-Approximately 1.67× faster average inference.
-Mean Dice remained close to the reference result despite the substantial reduction in model complexity.
-Sensitivity and HD95 were also competitive with the reference results.
-Dice Score by Region
-Region	Dice
-ET	0.5846
-TC	0.5849
-WT	0.8598
-NETC	0.7117
-SNFH	0.8443
-RC	0.6080
-Inference Performance
-
-Inference performance was evaluated by comparing the optimized model with the reference implementation.
-
-Case	Optimized	Reference
-Anton	86.09 s	167.31 s
-Rudi	100.80 s	107.10 s
-Siti	71.64 s	157.97 s
-Average	86.18 s	144.13 s
-
-The optimized model achieved an average inference time of 86.18 seconds, compared with 144.13 seconds for the reference model.
