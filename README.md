@@ -141,6 +141,24 @@ Evaluated on **BraTS-GLI 2024** using a fixed random seed of `42`:
 
 ---
 
+### 4. Qualitative Visualizations
+
+Representative segmentation outputs on a test case (`BraTS-GLI-02268-101`, Mean Dice: **0.8449**):
+
+#### 2D Multi-View Orthogonal Slices
+Comparison across Sagittal, Coronal, and Transversal views showing Ground Truth (top row) versus Model Predictions (bottom row):
+
+<p align="center">
+  <img src="asstes/vis_multiview_2d.jpeg" alt="2D Multi-View Segmentation Comparison" width="90%"/>
+</p>
+
+#### 3D Brain Anatomy & Tumor Rendering
+Reconstructed 3D volume comparing anatomical Ground Truth and Model Predictions (NETC, SNFH, ET, and RC subregions):
+
+<p align="center">
+  <img src="asstes/vis_render_3d.jpeg" alt="3D Anatomical Tumor Reconstruction" width="85%"/>
+</p>
+
 ## ⚠️ Limitations
 
 * **Epoch Constraints:** Training was capped at 100 epochs due to GPU quotas (compared to 261 epochs in the reference literature).
