@@ -149,14 +149,14 @@ Representative segmentation outputs on a test case (`BraTS-GLI-02268-101`, Mean 
 Comparison across Sagittal, Coronal, and Transversal views showing Ground Truth (top row) versus Model Predictions (bottom row):
 
 <p align="center">
-  <img src="asstes/vis_multiview_2d.jpeg" alt="2D Multi-View Segmentation Comparison" width="90%"/>
+  <img src="asstes/vis_multiview_2d.png" alt="2D Multi-View Segmentation Comparison" width="90%"/>
 </p>
 
 #### 3D Brain Anatomy & Tumor Rendering
 Reconstructed 3D volume comparing anatomical Ground Truth and Model Predictions (NETC, SNFH, ET, and RC subregions):
 
 <p align="center">
-  <img src="asstes/vis_render_3d.jpeg" alt="3D Anatomical Tumor Reconstruction" width="85%"/>
+  <img src="asstes/vis_render_3d.png" alt="3D Anatomical Tumor Reconstruction" width="85%"/>
 </p>
 
 ## ⚠️ Limitations
