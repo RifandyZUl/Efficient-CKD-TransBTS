@@ -35,7 +35,7 @@ The adapted model retains the core multi-modal feature learning principle of CKD
 
 ### Model Overview
 <p align="center">
-  <img src="assets/architecture_overview.jpeg" alt="Efficient CKD-TransBTS Architecture" width="85%"/>
+  <img src="asstes/architecture_overview.jpeg" alt="Efficient CKD-TransBTS Architecture" width="85%"/>
 </p>
 
 * **Base Channels:** Reduced to a constant **16 channels** across all stages.
@@ -52,14 +52,14 @@ The adapted model retains the core multi-modal feature learning principle of CKD
 Three sequential MCCA blocks are utilized (base channel: 32, attention heads: 2) to capture cross-modal dependencies between MRI sequences efficiently.
 
 <p align="center">
-  <img src="assets/mcca_module.jpeg" alt="Modality-Correlated Cross-Attention (MCCA)" width="90%"/>
+  <img src="asstes/mcca_module.jpeg" alt="Modality-Correlated Cross-Attention (MCCA)" width="90%"/>
 </p>
 
 #### 2. Transformer & CNN Feature Calibration (TCFC)
 Feature calibration is performed to dynamically weigh and integrate representations originating from both convolutional and attention mechanisms before final decoding.
 
 <p align="center">
-  <img src="assets/tcfc_module.jpeg" alt="Transformer & CNN Feature Calibration (TCFC)" width="80%"/>
+  <img src="asstes/tcfc_module.jpeg" alt="Transformer & CNN Feature Calibration (TCFC)" width="80%"/>
 </p>
 ## 📊 Taguchi Hyperparameter Optimization
 
