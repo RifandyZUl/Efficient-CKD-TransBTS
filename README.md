@@ -31,18 +31,36 @@ While the original CKD-TransBTS achieves high accuracy, its computational and me
 
 ## 🏗️ Architecture Adaptation
 
-The adapted model retains the core multi-modal feature learning principle of CKD-TransBTS while streamlining resource-intensive components:
+The adapted model retains the core multi-modal feature learning principle of CKD-TransBTS while streamlining resource-intensive components to improve parameter efficiency and inference speed.
+
+### Model Overview
+<p align="center">
+  <img src="assets/architecture_overview.jpeg" alt="Efficient CKD-TransBTS Architecture" width="85%"/>
+</p>
 
 * **Base Channels:** Reduced to a constant **16 channels** across all stages.
 * **Bottleneck:** Replaced heavy transformer layers with an efficient convolutional bottleneck.
-* **Cross-Attention:** Integrated **3 sequential Modality-Correlated Cross-Attention (MCCA)** blocks (base channel: 32, attention heads: 2).
 * **Modality Pairing:** Multi-modal MRI inputs are grouped into two complementary streams:
   * Stream A: `T1c` + `T1n`
   * Stream B: `T2f` + `T2w`
-* **Calibration:** Feature calibration implemented via the **Transformer & CNN Feature Calibration (TCFC)** component.
 
 ---
 
+### Key Sub-Modules
+
+#### 1. Modality-Correlated Cross-Attention (MCCA)
+Three sequential MCCA blocks are utilized (base channel: 32, attention heads: 2) to capture cross-modal dependencies between MRI sequences efficiently.
+
+<p align="center">
+  <img src="assets/mcca_module.jpeg" alt="Modality-Correlated Cross-Attention (MCCA)" width="90%"/>
+</p>
+
+#### 2. Transformer & CNN Feature Calibration (TCFC)
+Feature calibration is performed to dynamically weigh and integrate representations originating from both convolutional and attention mechanisms before final decoding.
+
+<p align="center">
+  <img src="assets/tcfc_module.jpeg" alt="Transformer & CNN Feature Calibration (TCFC)" width="80%"/>
+</p>
 ## 📊 Taguchi Hyperparameter Optimization
 
 A Taguchi $L_9(3^3)$ orthogonal array was employed to systematically screen three critical training factors across three levels:
