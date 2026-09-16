@@ -61,40 +61,75 @@ Feature calibration is performed to dynamically weigh and integrate representati
 <p align="center">
   <img src="asstes/tcfc_module.jpeg" alt="Transformer & CNN Feature Calibration (TCFC)" width="80%"/>
 </p>
+
 ## 📊 Taguchi Hyperparameter Optimization
-
-A Taguchi $L_9(3^3)$ orthogonal array was employed to systematically screen three critical training factors across three levels:
-
+ 
+To efficiently narrow down a large hyperparameter search space, a Taguchi **L₉(3³) orthogonal array** was used to screen three critical training factors — across three levels each — before committing to full-scale training.
+ 
+### Factors & Levels
+ 
 | Factor | Level 1 | Level 2 | Level 3 |
 | :--- | :---: | :---: | :---: |
 | **Learning Rate** | 0.001 | 0.0001 | 0.00001 |
-| **Optimizer** | Adam | AdamW | SGD |
-| **Patch Size** | $128 \times 128 \times 128$ | $96 \times 96 \times 96$ | $64 \times 64 \times 64$ |
-
+| **Optimizer** | Adam | AdamW | RAdam |
+| **Patch Size** | 128×128×128 | 96×96×96 | 64×64×64 |
+ 
+### Screening Setup
+ 
+To keep all 9 trials computationally feasible, each configuration was trained under a reduced screening regime rather than full convergence:
+ 
+| Setting | Value |
+| :--- | :--- |
+| Data used | 15% subset |
+| Dataset version | BraTS-GLI 2024 |
+| Epochs | 10 |
+| GPU | NVIDIA L4 |
+ 
+### Trial Results (L₁–L₉)
+ 
+| Trial | Learning Rate | Optimizer | Patch Size | Mean Dice | Training Time |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| L1 | 0.001 | Adam | 128×128×128 | 0.4507 | ~4h 15m |
+| L2 | 0.001 | AdamW | 96×96×96 | 0.4910 | ~2h 39m |
+| L3 | 0.001 | RAdam | 64×64×64 | 0.5278 | ~2h 05m |
+| L4 | 0.0001 | Adam | 96×96×96 | **0.5328** | ~2h 58m |
+| L5 | 0.0001 | AdamW | 64×64×64 | 0.5271 | ~2h 02m |
+| L6 | 0.0001 | RAdam | 128×128×128 | 0.4546 | ~4h 55m |
+| L7 | 0.00001 | Adam | 64×64×64 | 0.5084 | ~2h 03m |
+| L8 | 0.00001 | AdamW | 128×128×128 | 0.5254 | ~4h 32m |
+| L9 | 0.00001 | RAdam | 96×96×96 | 0.5265 | ~2h 52m |
+ 
+**Observations from the screening phase:**
+ 
+- The largest patch size (128³, trials L1/L6/L8) consistently required the longest training time (~4h15m–4h55m) without a corresponding gain in Mean Dice, indicating a poor accuracy-to-cost trade-off at this data/epoch budget.
+- Smaller patch sizes (64³ and 96³) trained in roughly half the time (~2h) while reaching comparable or higher Mean Dice.
+- **L4** (LR 0.0001, Adam, 96³) obtained the highest raw Mean Dice in this screening phase (0.5328), while **L5** (LR 0.0001, AdamW, 64³) reached a very close score (0.5271) in noticeably less training time (~2h02m vs ~2h58m) — the smallest patch size of the top-performing trials.
 ### Selected Configuration (L5)
-The **L5** configuration yielded the highest validation performance and was selected for full model convergence:
-
-| Configuration | Learning Rate | Optimizer | Patch Size | Mean Dice |
+ 
+**L5** was carried forward to full-scale training and final evaluation:
+ 
+| Configuration | Learning Rate | Optimizer | Patch Size | Mean Dice (screening) |
 | :---: | :---: | :---: | :---: | :---: |
-| **L5** | **0.0001** | **AdamW** | **$64 \times 64 \times 64$** | **0.6553** |
-
+| **L5** | **0.0001** | **AdamW** | **64×64×64** | **0.5271** |
+ 
+> ⚠️ **Note for the author:** in the screening table above, L4 shows a slightly higher raw Mean Dice (0.5328) than L5 (0.5271). If L5 was selected primarily for its better accuracy-to-runtime trade-off (~2h02m vs ~2h58m) rather than the highest raw score, it's worth stating that rationale explicitly here — otherwise a reader may flag the inconsistency.
+ 
 ---
-
+ 
 ## 🧪 Experimental Setup
-
+ 
 ### Dataset & Subregions
+ 
 Evaluated on **BraTS-GLI 2024** using a fixed random seed of `42`:
+ 
 * **Training:** 1,081 cases
 * **Validation:** 270 cases
 * **Testing:** 270 cases
-
 * **Modalities:** T1n, T1c, T2w, and T2f.
 * **Target Subregions:**
   * Primary: Non-enhancing tumor core (**NETC**), Surrounding non-enhancing FLAIR hyperintensity (**SNFH**), Enhancing tumor (**ET**), and Resection cavity (**RC**).
   * Compound: Tumor Core (**TC** = ET + NETC), Whole Tumor (**WT** = ET + NETC + SNFH).
-
-*(Due to BraTS licensing agreements, dataset files are not distributed within this repository. Please obtain access via the CBICA distribution portal).*
-
+*(Due to BraTS licensing agreements, dataset files are not distributed within this repository. Please obtain access via the CBICA distribution portal.)*
 ### Preprocessing & Augmentation
 * **Pipeline:** RAS orientation $\rightarrow$ Resampling to $1 \times 1 \times 1\text{ mm}$ $\rightarrow$ $1^{\text{st}}$–$99^{\text{th}}$ percentile intensity clipping $\rightarrow$ Foreground cropping $\rightarrow$ Patch extraction ($64 \times 64 \times 64$).
 * **Augmentations:** Random flips, $90^\circ$ rotations, affine transforms, 3D elastic deformation, zoom, and Gaussian noise.
